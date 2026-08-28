@@ -1,5 +1,7 @@
 # dsh-ca-ref
 
+**Languages: [English](README.en.md) | [中文](README.md)**
+
 Clean Architecture reference library — a plugin for DSH (DeepSeek Harness).
 
 ![Panel screenshot](screenshots/ca-ref-panel.png)
@@ -28,11 +30,25 @@ A `/ca-ref status|search|baseline|ledger|stats|reindex` command channel (with `-
 
 ## Install
 
+In your DSH web profile directory (the directory with the profile's `package.json`, default `~/.dsh/profiles/web`):
+
 ```bash
-pnpm add dsh-ca-ref
-# or develop locally
-dsh web --patch ./cordis.patch.yml --port 3090
+cd ~/.dsh/profiles/web
+pnpm add github:Ansonfishing/dsh-ca-ref
 ```
+
+Then make sure `dsh.profile.bundles` in `package.json` includes `"dsh-ca-ref"`, and restart `dsh`. A "CA Reference Library" tab then appears in the conversation view.
+
+### Local development
+
+Clone this repo and use a `link:` dependency in your profile:
+
+```bash
+cd ~/.dsh/profiles/web
+pnpm add link:../path/to/dsh-ca-ref
+```
+
+Client-only changes need a browser refresh; Node-side changes (`index.js` / `lib/*.js`) need a `dsh` restart.
 
 The corpus defaults to `~/AI/ca-ref` (override with the `CAREF_CORPUS` env var); the database lives at `~/.dsh/caref/caref.db` (indexed on first use). See `seed/repos.json` for the pinned repos and their verification commands.
 

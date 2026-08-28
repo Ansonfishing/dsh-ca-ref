@@ -1,5 +1,7 @@
 # dsh-ca-ref
 
+**语言 / Language: [中文](README.md) | [English](README.en.md)**
+
 Clean Architecture 参考库——DSH（DeepSeek Harness）插件。
 
 ![面板截图](screenshots/ca-ref-panel.png)
@@ -28,11 +30,25 @@ Clean Architecture 参考库——DSH（DeepSeek Harness）插件。
 
 ## 安装
 
+在 DSH 的 web profile 目录（profile 的 `package.json` 所在目录，默认 `~/.dsh/profiles/web`）执行：
+
 ```bash
-pnpm add dsh-ca-ref
-# 或本地开发
-dsh web --patch ./cordis.patch.yml --port 3090
+cd ~/.dsh/profiles/web
+pnpm add github:Ansonfishing/dsh-ca-ref
 ```
+
+然后确认 `package.json` 的 `dsh.profile.bundles` 数组里包含 `"dsh-ca-ref"`，重启 `dsh` 即可。安装后会话区出现「CA 参考库」tab。
+
+### 本地开发
+
+clone 本仓库后在 profile 里用 link 依赖：
+
+```bash
+cd ~/.dsh/profiles/web
+pnpm add link:../path/to/dsh-ca-ref
+```
+
+客户端改动只需浏览器 F5；Node 侧（`index.js` / `lib/*.js`）改动需重启 `dsh`。
 
 语料默认在 `~/AI/ca-ref`(可用环境变量 `CAREF_CORPUS` 指向别处),数据库在 `~/.dsh/caref/caref.db`(首次使用自动建索引)。语料克隆与验证命令见 `seed/repos.json` 各仓的 `verify_cmd` 字段。
 
