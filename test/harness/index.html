@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>ca-ref 渲染验证 harness</title>
+<script src="react.js"></script>
+<script src="react-dom.js"></script>
+<style>
+  html,body{margin:0;height:100%;background:#1e1e20;font-family:-apple-system,"Segoe UI","PingFang SC",sans-serif;}
+  #tabbar{padding:10px 16px;color:#a3a3a3;font-size:12px;}
+  #panel{height:calc(100% - 34px);min-height:680px;}
+</style>
+</head>
+<body>
+<div id="tabbar">模拟会话视图 tab 列 · scenario=mock · panel=<span id="pid"></span></div>
+<script>if (new URLSearchParams(location.search).get("chrome") === "0") document.getElementById("tabbar").style.display = "none";</script>
+<div id="panel"></div>
+<script>
+  /* mock 数据:演示用途。仓名/SHA 取自 seed/repos.json(公开 GitHub 仓),其余为虚构 */
+  const NOW = Date.now();
+  const CARDS = {
+    "go-clean-template": "# go-clean-template\n\nGo Clean Architecture 参考仓:cmd → app → domain → infra 依赖方向。\n\n## 关键断言\n- domain 包零外部 import(无 infra/app/cmd)\n- app 只依赖 domain 接口",
+    "wild-workouts-go-ddd-example": "# wild-workouts-go-ddd-example\n\nGo DDD 教学仓:pkg/domain / pkg/app / pkg/infrastructure 三层。\n\n## 关键断言\n- domain 实体不持有基础设施类型\n- app 层用例编排 domain,不碰 I/O 细节",
+    "ddd-example-ecommerce": "# ddd-example-ecommerce\n\nJava DDD 电商示例(230 测试基线)。\n\n## 关键断言\n- 依赖方向:domain ← application ← infrastructure\n- 聚合根内聚不变量",
+    "library": "# library\n\nSpring Boot 参考(只读:构建链已死)。\n\n## 关键断言\n- 分层包结构:api/service/dao/domain",
+    "modular-monolith-with-ddd": "# modular-monolith-with-ddd\n\nC# 模块化单体 DDD(只读参考)。\n\n## 关键断言\n- LayersTests 守护层间依赖(注意源内 copy-paste bug)",
+    "hexagonal-architecture-spring-boot": "# hexagonal-architecture-spring-boot\n\nJava 六边形架构示例(28 测试基线)。\n\n## 关键断言\n- ports 接口位于领域侧,adapters 实现\n- 领域核心零框架依赖",
+    "django-oscar": "# django-oscar\n\nPython 17 个 bounded-context app 结构参考。\n\n## 关键断言\n- 各 app 只通过 API 层互调,不直连别的 app 模型",
+    "fastapi": "# fastapi\n\n框架级 Python 依赖方向参考。\n\n## 关键断言\n- dependencies(DI)← routing/openapi\n- test_router_circular_import 守护 import 环"
+  };
+  const RULES = {
+    "go-clean-template": [
+      { id: "dep-domain-noimport", severity: "red", section: "依赖方向", check: "domain 包禁止 import 任何其他层" },
+      { id: "app-ports-only", severity: "yellow", section: "接口", check: "app 层只引用 domain 定义的接口" }
+    ],
+    "wild-workouts-go-ddd-example": [
+      { id: "dep-model-app", severity: "red", section: "依赖方向", check: "model 不得 import store/app" },
+      { id: "layer-domain-infra", severity: "yellow", section: "分层", check: "domain 测试不得触碰 infrastructure" }
+    ],
+    "ddd-example-ecommerce": [
+      { id: "agg-invariant", severity: "yellow", section: "聚合", check: "不变量只在聚合根内校验" }
+    ],
+    "library": [
+      { id: "layering", severity: "yellow", section: "分层", check: "api/service/dao/domain 单向依赖" }
+    ],
+    "modular-monolith-with-ddd": [
+      { id: "layer-domain-infra", severity: "yellow", section: "分层", check: "Domain 层零 Infrastructure 引用" }
+    ],
+    "hexagonal-architecture-spring-boot": [
+      { id: "ports-in-domain", severity: "red", section: "六边形", check: "端口接口定义在领域侧,非 adapter 侧" },
+      { id: "core-no-framework", severity: "yellow", section: "六边形", check: "领域核心不 import Spring 注解" }
+    ],
+    "django-oscar": [
+      { id: "context-api-only", severity: "red", section: "限界上下文", check: "跨 app 只经 API,不直连外域模型" }
+    ],
+    "fastapi": [
+      { id: "dep-di-direction", severity: "yellow", section: "依赖方向", check: "routing/openapi 依赖 dependencies,反向禁止" }
+    ]
+  };
+  const REPO_META = [
+    ["go-clean-template", "go", "d1f46523e9a8435713aabb70222c6189564d4501", "pass", "2026-08-22"],
+    ["wild-workouts-go-ddd-example", "go", "c0bd4412f683e766d89becd588e5d7f51d1a788b", "pass", "2026-08-25"],
+    ["ddd-example-ecommerce", "java", "b48268eacfb2940d4d1237cfae09acea3bcc779e", "pass", "2023-12-11"],
+    ["library", "java", "98d7004b5aef366ba5d661ae0cb544af1cfd33f1", "read-only", "2022-05-25"],
+    ["modular-monolith-with-ddd", "csharp", "91c8ef24b4cb6ef558c95d8267fa07d68c7059f8", "read-only", "2024-04-20"],
+    ["hexagonal-architecture-spring-boot", "java", "a0084c299368facc996a15245b200d35973cdfff", "pass", "2026-05-16"],
+    ["django-oscar", "python", "cdbfc4412c87dd9037d62b04755780b76490373c", "pass", "2026-08-20"],
+    ["fastapi", "python", "49033471594ea5d99a80abdf1043231b7791ee49", "pass", "2026-08-26"]
+  ];
+  const STATUS = {
+    corpus: "/corpus/ca-ref",
+    db: "/tmp/ca-ref.db",
+    index: { at: NOW - 86400e3, chunks: 4182 },
+    repos: REPO_META.map(([name, lang, sha, verified, last_commit]) => ({
+      name, lang, sha, last_commit,
+      verified, verified_at: "2026-08-27",
+      index_state: "indexed", head_drift: false,
+      note: name === "library" ? "不可构建:只作断言模板+docs 参考" : "",
+      card: CARDS[name], rules: RULES[name]
+    }))
+  };
+  const LEDGER = { events: [
+    { id: "ev-review-1", kind: "review", project: "demo-ecommerce", language: "go", query: "", created_at: NOW - 3600e3,
+      detail: "{}", findings: [
+        { rule_id: "dep-model-app", severity: "red", evidence: "internal/model/user.go:42 — model 直接 import store", source_ref: "wild-workouts-go-ddd-example:assert/model_no_store.go" },
+        { rule_id: "layer-domain-infra", severity: "yellow", evidence: "pkg/domain/order_test.go:18 — domain 测试 import infra 内存实现" }
+      ] },
+    { id: "ev-search-1", kind: "search", project: "", language: "go", query: "dependency rule domain", created_at: NOW - 7200e3,
+      detail: JSON.stringify({ hits: 6, repos: ["go-clean-template", "wild-workouts-go-ddd-example"] }) },
+    { id: "ev-search-2", kind: "search", project: "", language: "python", query: "bounded context", created_at: NOW - 86400e3,
+      detail: JSON.stringify({ hits: 3, repos: ["django-oscar"] }) }
+  ] };
+  const STATS = {
+    repoHits: { "go-clean-template": 5, "fastapi": 3, "django-oscar": 2, "ddd-example-ecommerce": 2, "library": 1, "hexagonal-architecture-spring-boot": 1 },
+    ruleHits: { "dep-model-app": 4, "layer-domain-infra": 3, "dep-domain-noimport": 2, "use-case-io": 1 },
+    zeroHitRules: ["entity-anemic", "interactor-single-resp"],
+    totals: { search: 7, review: 3 }
+  };
+  const MOCK = {
+    "/ca-ref status --json": STATUS,
+    "/ca-ref ledger 40 --json": LEDGER,
+    "/ca-ref stats --json": STATS
+  };
+  window.__ModuleLoader__ = { load: (spec) => { window.__spec = spec; } };
+</script>
+<script src="client-under-test.js"></script>
+<script>
+  const req = (n) => (n === "react" ? window.React : null);
+  const exp = window.__spec.factory(req);
+  let Panel = null;
+  const ctx = {
+    slots: {
+      inject: (name, fn) => { if (name === "conversation.view") fn(); },
+      register: (cfg, comp) => { Panel = (props) => comp(props); document.getElementById("pid").textContent = cfg.id + " (order " + cfg.order + ")"; }
+    },
+    remote: {
+      commands: {
+        execute: (sid, line) => {
+          if (MOCK[line]) return Promise.resolve({ ok: true, value: MOCK[line] });
+          return Promise.reject(new Error("unexpected command " + line));
+        }
+      }
+    },
+    sessions: { list: [] }
+  };
+  exp.apply(ctx);
+  ReactDOM.createRoot(document.getElementById("panel")).render(React.createElement(Panel, { sessionId: "mock-sid" }));
+</script>
+</body>
+</html>

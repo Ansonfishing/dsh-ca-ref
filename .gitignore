@@ -1,0 +1,11 @@
+# 运行时数据（插件首启懒建，存 ~/.dsh/ca-ref/，不入仓）
+*.db
+*.db-*
+*.db-journal
+
+# 临时隔离目录（smoke/measure 用）
+/tmp/
+*smoke-tmp*
+
+# 依赖
+node_modules/

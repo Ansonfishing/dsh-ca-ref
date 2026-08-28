@@ -1,0 +1,93 @@
+{
+  "_comment": "8 仓基线钉版(6 仓首发 + Python 2 仓补位)。updater 每日用 git rev-parse HEAD 校验漂移。",
+  "repos": [
+    {
+      "name": "go-clean-template",
+      "remote": "evrone/go-clean-template",
+      "lang": "go",
+      "sha": "d1f46523e9a8435713aabb70222c6189564d4501",
+      "last_commit": "2026-08-22",
+      "verified": "pass",
+      "verified_at": "2026-08-27",
+      "verify_cmd": "GOTOOLCHAIN=local GOROOT=$HOME/go GOPATH=$HOME/go GOMODCACHE=$HOME/go/pkg/mod PATH=$HOME/go/bin:$PATH make test",
+      "note": "make pre-commit 另需 golangci-lint/swag/protoc/mockgen"
+    },
+    {
+      "name": "wild-workouts-go-ddd-example",
+      "remote": "ThreeDotsLabs/wild-workouts-go-ddd-example",
+      "lang": "go",
+      "sha": "c0bd4412f683e766d89becd588e5d7f51d1a788b",
+      "last_commit": "2026-08-25",
+      "verified": "pass",
+      "verified_at": "2026-08-27",
+      "verify_cmd": "go build ./...(4 模块;组件测试需 docker compose + task test)",
+      "note": "go test 是组件测试(起服务打真实端口),裸跑必失败"
+    },
+    {
+      "name": "ddd-example-ecommerce",
+      "remote": "ttulka/ddd-example-ecommerce",
+      "lang": "java",
+      "sha": "b48268eacfb2940d4d1237cfae09acea3bcc779e",
+      "last_commit": "2023-12-11",
+      "verified": "pass",
+      "verified_at": "2026-08-27",
+      "verify_cmd": "JAVA_HOME=<JDK21 路径> ./mvnw -q test -Dlombok.version=1.18.40",
+      "note": "230 测试 0 失败;JDK 25 编译挂(旧 lombok);停更 2023,代码当断言模板用"
+    },
+    {
+      "name": "library",
+      "remote": "ddd-by-examples/library",
+      "lang": "java",
+      "sha": "98d7004b5aef366ba5d661ae0cb544af1cfd33f1",
+      "last_commit": "2022-05-25",
+      "verified": "read-only",
+      "verified_at": "2026-08-27",
+      "verify_cmd": "",
+      "note": "不可构建:Spring Boot 2.2.0.M6 里程碑仓已死(401/404);只作断言模板+docs 参考"
+    },
+    {
+      "name": "modular-monolith-with-ddd",
+      "remote": "kgrzybek/modular-monolith-with-ddd",
+      "lang": "csharp",
+      "sha": "91c8ef24b4cb6ef558c95d8267fa07d68c7059f8",
+      "last_commit": "2024-04-20",
+      "verified": "read-only",
+      "verified_at": "2026-08-27",
+      "verify_cmd": "",
+      "note": "本机无 dotnet SDK;断言模式已读源码核对(LayersTests.cs 有 copy-paste bug,见 rules.yml layer-domain-infra)"
+    },
+    {
+      "name": "hexagonal-architecture-spring-boot",
+      "remote": "arhohuttunen/hexagonal-architecture-spring-boot",
+      "lang": "java",
+      "sha": "a0084c299368facc996a15245b200d35973cdfff",
+      "last_commit": "2026-05-16",
+      "verified": "pass",
+      "verified_at": "2026-08-27",
+      "verify_cmd": "JAVA_HOME=<JDK21 路径> ./gradlew --no-daemon test",
+      "note": "28 测试 0 失败;Gradle 9.5.1,首次发行版下载走本地代理（如需要）"
+    },
+    {
+      "name": "django-oscar",
+      "remote": "django-oscar/django-oscar",
+      "lang": "python",
+      "sha": "cdbfc4412c87dd9037d62b04755780b76490373c",
+      "last_commit": "2026-08-20",
+      "verified": "pass",
+      "verified_at": "2026-08-28",
+      "verify_cmd": "DATABASE_ENGINE=django.db.backends.sqlite3 <corpus>/.venv-oscar/bin/python -m pytest tests/unit/core/test_application.py tests/unit/dashboard/test_nav.py tests/unit/dashboard/test_permissions.py tests/unit/dashboard/test_stockrecord.py tests/unit/forms/test_widgets.py tests/unit/templatetags/test_display_tags.py tests/unit/templatetags/test_sorting_tags.py -q(仓根目录;venv 需 pip install -e '.[test]' sorl-thumbnail pytz)",
+      "note": "16 纯单测 0 失败;DB fixture 测试(48)需 postgres,本机无,--sqlite 下失败属环境性;无 ArchUnit 式架构测试,价值在 17 个 bounded-context app 结构 + flake8/isort lint 基线"
+    },
+    {
+      "name": "fastapi",
+      "remote": "tiangolo/fastapi",
+      "lang": "python",
+      "sha": "49033471594ea5d99a80abdf1043231b7791ee49",
+      "last_commit": "2026-08-26",
+      "verified": "pass",
+      "verified_at": "2026-08-28",
+      "verify_cmd": "<corpus>/.venv-fastapi/bin/python -m pytest tests/test_router_circular_import.py -q(仓根目录;venv 需 pip install -e . pytest pytest-timeout,strict-config 要求 pytest-timeout 在场)",
+      "note": "框架级 Python 参考:dependencies(DI 核心)←routing/openapi 依赖方向;tests/test_router_circular_import.py 是 import 环守护测试(实测 1 passed);209 个测试文件不跑全量"
+    }
+  ]
+}
