@@ -10,7 +10,7 @@ Clean Architecture reference library — a plugin for DSH (DeepSeek Harness).
 
 When reviewing Clean Arch / DDD / hexagonal projects, the "known-good" answers are scattered across architecture tests and docs in various reference repos, and every review means digging through them again.
 
-This plugin pre-indexes 8 pinned reference repos (Go / Java / C# / TypeScript / Python) into a local FTS5 database, so you can pull the full "answer set" in one call before a review, log the review afterwards, and feed hit statistics back into library curation.
+This plugin pre-indexes 8 pinned reference repos (Go / Java / C# / Python) into a local FTS5 database, so you can pull the full "answer set" in one call before a review, log the review afterwards, and feed hit statistics back into library curation.
 
 ## Quick start
 
@@ -48,10 +48,22 @@ A `/ca-ref status\|search\|baseline\|ledger\|stats\|reindex` command channel (wi
 
 Clone this repo and open `test/harness/index.html` in a browser — a zero-dependency render harness (mock data, `?chrome=0` hides the harness bar).
 
+## Updating the corpus
+
+The daily tick runs `git rev-parse HEAD` as a read-only drift check against the pinned SHAs in `seed/repos.json`: on drift the panel's baseline tab shows ⚠️, but nothing is re-cloned automatically. When you decide to update, run, in the corpus directory for the affected repo:
+
+```bash
+git fetch --all && git checkout <new sha>   # or keep the old pinned version
+<the repo's verify_cmd>                      # e.g. make test, to confirm the build still passes
+```
+
+Then run `/ca-ref reindex` to rebuild the index. If a repo's corpus is missing, its search/indexing is skipped automatically (a data gap, not a code bug).
+
 ## Development
 
 ```bash
-node scripts/smoke.mjs   # smoke: 8 pinned repos + toolchain + index (missing local corpus items are skipped)
+npm test                       # hermetic contract tests (node --test, no local corpus needed)
+node scripts/smoke.mjs         # smoke: 8 pinned repos + toolchain + index (missing local corpus items are skipped)
 ```
 
 Local development: after cloning, use `pnpm add link:../path/to/dsh-ca-ref` in your profile. Client-only changes need a browser refresh; Node-side changes (`index.js` / `lib/*.js`) need a `dsh` restart.
