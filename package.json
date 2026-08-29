@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "main": "./index.js",
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
   "description": "Clean Architecture 参考库(agent 审查基线): 8 仓钉版 FTS5 搜索 + 断言清单 + 自动审查台账 + 只读观察窗",
   "exports": {
     ".": {
