@@ -10,7 +10,7 @@ Clean Architecture 参考库——DSH(DeepSeek Harness)插件。
 
 审查 Clean Arch / DDD / 六边形分层项目时,「标准答案」散落在各个参考仓的架构测试和文档里,每次审查都要重新翻。
 
-这个插件把 8 个钉版参考仓(Go / Java / C# / TypeScript / Python)预先索引成本地 FTS5 库,审查前一键拿「标准答案集」,审查完留账,命中统计反哺参考库策展。
+这个插件把 8 个钉版参考仓(Go / Java / C# / Python)预先索引成本地 FTS5 库,审查前一键拿「标准答案集」,审查完留账,命中统计反哺参考库策展。
 
 ## 快速开始
 
@@ -48,10 +48,22 @@ pnpm add github:Ansonfishing/dsh-ca-ref
 
 clone 本仓库,浏览器直接打开 `test/harness/index.html`——零依赖渲染 harness,`?chrome=0` 隐藏 harness 顶栏。
 
+## 语料更新
+
+每日 tick 用 `git rev-parse HEAD` 只读校验 `seed/repos.json` 的钉版 SHA:漂移时面板基线 tab 标 ⚠️,不自动 re-clone。决定更新时,在语料目录对相应仓执行:
+
+```bash
+git fetch --all && git checkout <新 sha>   # 或保持旧钉版不动
+<该仓 verify_cmd>                           # 如 make test,确认构建通过
+```
+
+更新后执行 `/ca-ref reindex` 重建索引。某仓语料缺失时,相关搜索/索引自动跳过(数据缺失,不是代码 bug)。
+
 ## 开发
 
 ```bash
-node scripts/smoke.mjs   # 冒烟: 8 仓钉版 + 工具链 + 索引(本地语料缺失会跳过对应项)
+npm test                    # hermetic 契约测试(node --test,不依赖本地语料)
+node scripts/smoke.mjs      # 冒烟: 8 仓钉版 + 工具链 + 索引(本地语料缺失会跳过对应项)
 ```
 
 本地开发:clone 后在 profile 里用 `pnpm add link:../path/to/dsh-ca-ref`。客户端改动浏览器 F5 即可;Node 侧(`index.js` / `lib/*.js`)改动需重启 `dsh`。
