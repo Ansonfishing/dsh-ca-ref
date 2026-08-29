@@ -439,7 +439,7 @@ function readCard(repo) {
 }
 
 /** 按 rules.yml 的 source.repo 归因：仓库名 → {id,severity,section,check}[]。
- *  源不在 6 仓内（如 clean-code-typescript）自然不出现在任何仓的规则表。 */
+ *  源不在 8 仓基线内（如 clean-code-typescript）自然不出现在任何仓的规则表。 */
 function repoRulesMap() {
   const { rules } = parseRulesYaml();
   const map = new Map();
@@ -737,7 +737,7 @@ export function apply(ctx) {
 
     tools.register({
       name: "ca_ref_status",
-      description: "CA 参考库健康状态:6 仓钉版 SHA / 验证结果(绿=实测通过,灰=只读参考)/ 索引状态 / 台账量。排查『参考库是不是还新鲜』时用。",
+      description: "CA 参考库健康状态:8 仓钉版 SHA / 验证结果(绿=实测通过,灰=只读参考)/ 索引状态 / 台账量。排查『参考库是不是还新鲜』时用。",
       parameters: { type: "object", properties: {}, required: [] },
       output: out,
       async execute() {
