@@ -6,6 +6,18 @@
   "scripts": {
     "test": "node --test test/*.test.mjs"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ansonfishing/dsh-ca-ref.git"
+  },
+  "keywords": [
+    "deepseek-harness",
+    "dsh-plugin",
+    "clean-architecture",
+    "ddd",
+    "code-review",
+    "architecture-review"
+  ],
   "description": "Clean Architecture 参考库(agent 审查基线): 8 仓钉版 FTS5 搜索 + 断言清单 + 自动审查台账 + 只读观察窗",
   "exports": {
     ".": {
